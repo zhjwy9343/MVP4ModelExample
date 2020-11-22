@@ -15,16 +15,20 @@ The Graph Data to Tackle
 The Model and Algorithm
 -------------------------
 
-For the modified CompGCN, the node embedding of the $k+th$ layer
+For the modified CompGCN, the detailed math formulas are in the CompGCN.ipynb notebook file. So bad github README.md 
+does not support Letax coding.
 
 The Structure of Example Files
 --------------------------------
 
-* **Section 1: Overview of Graph Neural Networks.** This section describes how graph
-  neural networks operate, their underlying theory, and their advantages over alternative
-  graph learning approaches. In addition, it describes various learning problems on graphs
-  and shows how GNNs can be used to solve them.
+- **Model folder:** Files about GNN models and related files are put in this folder.
 
+- **compgcn_node_classification.py:** The python file for training and inference(if required) using a full graph.
+
+- **compgcn_node_classification_mb.py:** The python file for training and inference(if required) using sampling 
+  and minibatch method.
+ 
+ 
 ## Community
 
 .
