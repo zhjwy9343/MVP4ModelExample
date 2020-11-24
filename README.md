@@ -27,10 +27,16 @@ The Structure of Example Files
 
 - **compgcn_node_classification_mb.py:** The python file for training and inference(if required) using sampling 
   and minibatch method.
- 
- 
-## Community
+  
+- **data_utils.py:** helper file that can generate synthetic graph datasets with given number of nodes plus 500 base
+  nodes. And its output is a .bin file in the name format as "sync_ba_xx_500", where xx is the number of nodes given by
+  the arugments. The synthetic data has "house" motifs connecting to a dense core.
+  
+- **syn1_ba_500_500.bin:** One sample synthetic dataset, having 1000 nodes. 500 of them form 100 "house" motifs, and the
+  rest 500 form a dense core. All nodes in the core have been labeled as "0", while labels of nodes in motifs are "1".
+  All nodes have 10d 
 
-.
+## 
+After run of training files, a model file, named "model.pth" will be created in the root path of this project.
 
 
