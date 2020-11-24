@@ -32,7 +32,7 @@ def main(args):
     test_idx = th.nonzero(test_mask).squeeze()
 
     # retrieve labels of target
-    labels = graph.ndata.pop('labels')
+    labels = graph.ndata.pop('labels').long()
 
     # split dataset into train and validate
     if args.validation:
@@ -58,7 +58,7 @@ def main(args):
     print("If use GPU: {}".format(use_cuda))
 
     # Step 2: Create sampler and dataloader for mini batch
-    sampler = MultiLayerFullNeighborSampler()
+    sampler = MultiLayerFullNeighborSampler(4)
 
     train_dataloader = NodeDataLoader(g=graph,
                                       nids=train_idx,
@@ -152,6 +152,8 @@ def main(args):
             print("In epoch|batch {}|{}, Valid Acc: {:.4f} | Valid loss: {:.4f}".
                   format(epoch, v, valid_acc, valid_loss.item()))
 
+    print()
+
     # Test with mini batch after all epoch
     compgcn_model.eval()
     for i, (input_nodes, output_nodes, bipartites) in enumerate(test_dataloader):
@@ -173,8 +175,6 @@ def main(args):
 
         print("Test Acc: {:.4f} | Test loss: {:.4f}".format(test_acc, test_loss.item()))
 
-    print()
-
     # Step 6: If need, save model to file ============================================================== #
     model_stat_dict = compgcn_model.state_dict()
     model_path = args.save_path
@@ -188,9 +188,10 @@ if __name__ == '__main__':
     parser.add_argument("--hid_dim", type=int, default=32, help="Hidden layer dimensionalities")
     parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
     parser.add_argument("--num_classes", type=int, default=2, help="Number of prediction classes")
+    parser.add_argument("--batchsize", type=int, default=128, help="Number of nodes in a mini batch")
     parser.add_argument("--e_feats_name", type=str, default='f', help="The key name of edge features")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function")
-    parser.add_argument("--max_epoch", type=int, default=200, help="The max number of epoches")
+    parser.add_argument("--max_epoch", type=int, default=20, help="The max number of epoches")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
     parser.add_argument("--drop_out", type=float, default=0.1, help="Drop out rate")
     parser.add_argument("--save_path", type=str, default='./model.pth', help="File path of the model to be saved.")

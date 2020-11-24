@@ -131,7 +131,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_classes", type=int, default=2, help="Number of prediction classes")
     parser.add_argument("--e_feats_name", type=str, default='f', help="The key name of edge features")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function")
-    parser.add_argument("--max_epoch", type=int, default=200, help="The max number of epoches")
+    parser.add_argument("--max_epoch", type=int, default=20, help="The max number of epoches")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
     parser.add_argument("--drop_out", type=float, default=0.1, help="Drop out rate")
     parser.add_argument("--save_path", type=str, default='./model.pth', help="File path of the model to be saved.")

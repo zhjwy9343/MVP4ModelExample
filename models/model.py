@@ -53,6 +53,7 @@ class CompGraphConv(nn.Module):
         with g.local_scope():
             # assign values to source nodes
             g.srcdata['h'] = n_in_feats
+            g.dstdata['h'] = n_h_dst
 
             # get e_features
             e_feats = g.edata[e_feats_name]
