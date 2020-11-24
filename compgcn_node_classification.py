@@ -54,8 +54,8 @@ def main(args):
     print("If use GPU: {}".format(use_cuda))
 
     if use_cuda:
-        graph = graph.to('cuda:{}'.format(args.gpu))
-        n_feats = n_feats.to('cuda:{}'.format(args.gpu))
+        graph = graph.to('cuda:{}'.format(args.gpu))            # This piece of codes cause difference between FG and MB
+        n_feats = n_feats.to('cuda:{}'.format(args.gpu))        # In MB, best practice is not set to GPU.
         labels = labels.to('cuda:{}'.format(args.gpu))
 
     # Step 2: Create model =================================================================== #
@@ -83,7 +83,9 @@ def main(args):
         compgcn_model.train()
 
         # forward
-        graphs = [graph] * args.num_layers
+        graphs = [graph] * args.num_layers          # This line of code cause difference between FG and MB. Without it
+                                                    # model built with bipartites get errors, but in MB it works fine
+
         logits = compgcn_model.forward(graphs, n_feats, e_feats_name)
 
         # compute loss

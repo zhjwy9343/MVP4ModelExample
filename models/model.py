@@ -53,7 +53,8 @@ class CompGraphConv(nn.Module):
         with g.local_scope():
             # assign values to source nodes
             g.srcdata['h'] = n_in_feats
-            g.dstdata['h'] = n_h_dst
+            g.dstdata['h'] = n_h_dst            # This line causes a problem between FG and MB. Without it, Works fine
+                                                # in FG, but error in MB
 
             # get e_features
             e_feats = g.edata[e_feats_name]
@@ -154,12 +155,12 @@ class CompGCN(nn.Module):
                                          self.out_dim,
                                          comp_fn = self.comp_fn))
 
-
     def forward(self, bipartites, n_feats, e_feats_name):
 
         # Forward of n layers of CompGraphConv
         for layer, bipartite in zip(self.layers, bipartites):
-            n_feats = layer(bipartite, n_feats, e_feats_name)
+            n_feats = layer(bipartite, n_feats, e_feats_name)   # This line of code may cause mindset confusion in FB,
+                                                                # because in full graph we need to give a set of graphs
 
         return n_feats
 

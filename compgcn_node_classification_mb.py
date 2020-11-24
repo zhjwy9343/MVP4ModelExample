@@ -42,7 +42,10 @@ def main(args):
         val_idx = train_idx
 
     # Extract node
-    n_feats = graph.ndata.pop('f')
+    n_feats = graph.ndata.pop('f')          # Here we need to explicitly tell the best practice: If we need to use
+                                            # edge featured in a general model, the edge features should be set into
+                                            # graph before sampling, and pass the key name of the features to module
+                                            # and layers.
     in_dim = n_feats.shape[-1]
 
     # Check if given e_feats_name exist in the graph's edata
