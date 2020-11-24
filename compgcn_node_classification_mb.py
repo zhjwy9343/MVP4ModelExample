@@ -1,19 +1,18 @@
 #-*- coding:utf-8 -*-
 
 """
-    The main file to train an GNN model.
+    The main file to train an GNN model by using mini batch method.
 """
 
 import os
 import sys
 import numpy as np
 import argparse
-import dgl
 import torch as th
-import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+from dgl import load_graphs
 from dgl.dataloading import MultiLayerNeighborSampler, MultiLayerFullNeighborSampler
 from dgl.dataloading import NodeDataLoader
 
@@ -44,7 +43,7 @@ def main(args):
 
     # Extract node
     n_feats = graph.ndata.pop('f')
-    in_dim = n_feats.shape(-1)
+    in_dim = n_feats.shape[-1]
 
     # Check if given e_feats_name exist in the graph's edata
     e_feats_name = args.e_feats_name
@@ -54,17 +53,9 @@ def main(args):
         print("The given feature name {} does NOT exist in the graph' edge data...".format(e_feats_name))
         sys.exit(-1)
 
-    e_feats = graph.edata.pop('f')
-
     # check cuda
     use_cuda = (args.gpu >= 0 and th.cuda.is_available())
     print("If use GPU: {}".format(use_cuda))
-
-    if use_cuda:
-        # graph = graph.to('cuda:{}'.format(args.gpu))     ? should we have graph in GPU when we can only sample it in CPU?
-        n_feats = n_feats.to('cuda:{}'.format(args.gpu))
-        e_feats = e_feats.to('cuda:{}'.format(args.gpu))
-        labels = labels.to('cuda:{}'.format(args.gpu))
 
     # Step 2: Create sampler and dataloader for mini batch
     sampler = MultiLayerFullNeighborSampler()
@@ -104,11 +95,11 @@ def main(args):
     if use_cuda:
         compgcn_model = compgcn_model.to('cuda:{}'.format(args.gpu))
 
-    # Step 3: Create training components ===================================================== #
+    # Step 4: Create training components ===================================================== #
     loss_fn = th.nn.CrossEntropyLoss()
     optimizer = optim.Adam([{'params': compgcn_model.parameters(), 'lr':args.lr, 'weight_decay':5e-4}])
 
-    # Step 4: training epoches =============================================================== #
+    # Step 5: training epoches =============================================================== #
     for epoch in range(args.max_epoch):
 
         # Training with mini batch
@@ -158,7 +149,7 @@ def main(args):
             valid_loss = loss_fn(valid_logits, labels_mb)
             valid_acc = th.sum(valid_logits.argmax(dim=1) == labels_mb).item() / len(train_idx)
 
-            print("In epoch|batch {}|{}, Validation Accuracy: {:.4f} | Validation loss: {:.4f}".
+            print("In epoch|batch {}|{}, Valid Acc: {:.4f} | Valid loss: {:.4f}".
                   format(epoch, v, valid_acc, valid_loss.item()))
 
     # Test with mini batch after all epoch
@@ -180,11 +171,11 @@ def main(args):
         test_loss = loss_fn(test_logits, labels_mb)
         test_acc = th.sum(test_logits.argmax(dim=1) == labels_mb).item() / len(output_nodes)
 
-        print("Test Accuracy: {:.4f} | Test loss: {:.4f}".format(test_acc, test_loss.item()))
+        print("Test Acc: {:.4f} | Test loss: {:.4f}".format(test_acc, test_loss.item()))
 
     print()
 
-    # Step 5: If need, save model to file ============================================================== #
+    # Step 6: If need, save model to file ============================================================== #
     model_stat_dict = compgcn_model.state_dict()
     model_path = args.save_path
     th.save(model_stat_dict, model_path)
@@ -192,7 +183,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BoSH CompGCN Full Graph')
-    parser.add_argument("-d", "--dataset", type=str, required=True, help="dataset to use")
+    # parser.add_argument("-d", "--dataset", type=str, required=True, help="dataset to use")
     parser.add_argument("--gpu", type=int, default=-1, help="GPU Index")
     parser.add_argument("--hid_dim", type=int, default=32, help="Hidden layer dimensionalities")
     parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
@@ -213,5 +204,7 @@ if __name__ == '__main__':
 
     np.random.seed(123456)
     th.manual_seed(123456)
+
+    args.dataset, _ = load_graphs('./syn1_ba_500_500.bin')
 
     main(args)

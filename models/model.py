@@ -34,7 +34,7 @@ class CompGraphConv(nn.Module):
 
         # define batch norm layer
         if self.batchnorm:
-            self.bn = nn.BatchNorm1d()
+            self.bn = nn.BatchNorm1d(out_dim)
 
         # define weights of 3 node matrics
         self.W_0 = nn.Linear(self.in_dim, self.out_dim)
@@ -87,10 +87,10 @@ class CompGraphConv(nn.Module):
             g.edata['comp_m'] = comp_m
 
             # Send comp_m to destination nodes and aggregate
-            g.update_all(fn.copy_e('comp_h', 'm'), fn.sum('m', 'h'))
+            g.update_all(fn.copy_e('comp_m', 'm'), fn.sum('m', 'out'))
 
             # Post process
-            n_out_feats = g.dstdata['h'] + self.W_h(n_h_dst)
+            n_out_feats = g.dstdata['out'] + self.W_h(n_h_dst)
 
             # Use drop out
             n_out_feats = self.dropout(n_out_feats)
@@ -151,13 +151,13 @@ class CompGCN(nn.Module):
         # Output layer with the output class
         self.layers.append(CompGraphConv(self.hid_dim,
                                          self.out_dim,
-                                         comp_fn = self.comp_fn,))
+                                         comp_fn = self.comp_fn))
 
 
     def forward(self, bipartites, n_feats, e_feats_name):
 
         # Forward of n layers of CompGraphConv
-        for layer, bipartite in enumerate(zip(self.layers, bipartites)):
+        for layer, bipartite in zip(self.layers, bipartites):
             n_feats = layer(bipartite, n_feats, e_feats_name)
 
         return n_feats
