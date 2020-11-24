@@ -20,6 +20,7 @@ does not support Letax coding.
 
 The Structure of Example Files
 --------------------------------
+- **CompGCN.ipynb:** Jupyter notebook that gives the math formula of the modified CompGCN.
 
 - **Model folder:** Files about GNN models and related files are put in this folder.
 

@@ -36,7 +36,7 @@ class CompGraphConv(nn.Module):
         if self.batchnorm:
             self.bn = nn.BatchNorm1d(out_dim)
 
-        # define weights of 3 node matrics
+        # define weights of 4 node matrics
         self.W_0 = nn.Linear(self.in_dim, self.out_dim)
         self.W_1 = nn.Linear(self.in_dim, self.out_dim)
         self.W_2 = nn.Linear(self.in_dim, self.out_dim)
