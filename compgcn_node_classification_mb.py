@@ -43,14 +43,6 @@ def main(args):
                                             # and layers.
     in_dim = n_feats.shape[-1]
 
-    # Check if given e_feats_name exist in the graph's edata
-    e_feats_name = args.e_feats_name
-    try:
-        e_feats = graph.edata[e_feats_name]
-    except Exception:
-        print("The given feature name {} does NOT exist in the graph' edge data...".format(e_feats_name))
-        sys.exit(-1)
-
     # check cuda
     use_cuda = (args.gpu >= 0 and th.cuda.is_available())
     print("If use GPU: {}".format(use_cuda))
@@ -113,7 +105,7 @@ def main(args):
                 labels_mb = labels_mb.to('cuda:{}'.format(args.gpu))
 
             # forward
-            tr_logits = compgcn_model.forward(bipartites, n_feats_mb, e_feats_name)
+            tr_logits = compgcn_model.forward(bipartites, n_feats_mb, 'f')
 
             # compute loss
             tr_loss = loss_fn(tr_logits, labels_mb)
@@ -141,7 +133,7 @@ def main(args):
                 labels_mb = labels_mb.to('cuda:{}'.format(args.gpu))
 
             # forward
-            valid_logits = compgcn_model.forward(bipartites, n_feats_mb, e_feats_name)
+            valid_logits = compgcn_model.forward(bipartites, n_feats_mb, 'f')
 
             # compute loss
             valid_loss = loss_fn(valid_logits, labels_mb)
@@ -165,7 +157,7 @@ def main(args):
             labels_mb = labels_mb.to('cuda:{}'.format(args.gpu))
 
         # forward
-        test_logits = compgcn_model.forward(bipartites, n_feats_mb, e_feats_name)
+        test_logits = compgcn_model.forward(bipartites, n_feats_mb, 'f')
 
         # compute loss
         test_loss = loss_fn(test_logits, labels_mb)
