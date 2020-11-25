@@ -94,12 +94,12 @@ class CompGraphConv(nn.Module):
             # Post process
             n_out_feats = g.dstdata['out'] + self.W_h(n_h_dst)
 
-            # Use drop out
-            n_out_feats = self.dropout(n_out_feats)
-
             # Use batch norm
             if self.batchnorm:
                 n_out_feats = self.bn(n_out_feats)
+
+            # Use drop out
+            n_out_feats = self.dropout(n_out_feats)
 
             # Use activation function
             if self.actvation is not None:
