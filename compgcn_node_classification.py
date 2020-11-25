@@ -43,11 +43,9 @@ def main(args):
     test_idx = th.nonzero(test_mask).squeeze()
 
     # split dataset into train and validate
-    if args.validation:
-        valid_idx = train_idx[:len(train_idx) // 5]
-        train_idx = train_idx[len(train_idx) // 5:]
-    else:
-        valid_idx = train_idx
+    valid_idx = train_idx[:len(train_idx) // 5]
+    train_idx = train_idx[len(train_idx) // 5:]
+
 
     # Step 2: Create model =================================================================== #
     compgcn_model = CompGCN(in_dim=in_dim,
@@ -123,12 +121,6 @@ if __name__ == '__main__':
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
     parser.add_argument("--drop_out", type=float, default=0.1, help="Drop out rate")
     parser.add_argument("--save_path", type=str, default='./model.pth', help="File path of the model to be saved.")
-
-    # could be removed for simplicity
-    fp = parser.add_mutually_exclusive_group(required=False)
-    fp.add_argument('--validation', dest='validation', action='store_true')
-    fp.add_argument('--testing', dest='validation', action='store_false')
-    parser.set_defaults(validation=True)
 
     args = parser.parse_args()
     print(args)

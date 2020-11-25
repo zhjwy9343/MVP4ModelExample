@@ -4,9 +4,7 @@
     The main file to train an GNN model by using mini batch method.
 """
 
-import os
 import sys
-import numpy as np
 import argparse
 import torch as th
 import torch.optim as optim
@@ -35,11 +33,8 @@ def main(args):
     labels = graph.ndata.pop('labels').long()
 
     # split dataset into train and validate
-    if args.validation:
-        val_idx = train_idx[:len(train_idx) // 5]
-        train_idx = train_idx[len(train_idx) // 5:]
-    else:
-        val_idx = train_idx
+    val_idx = train_idx[:len(train_idx) // 5]
+    train_idx = train_idx[len(train_idx) // 5:]
 
     # Extract node
     n_feats = graph.ndata.pop('f')          # Here we need to explicitly tell the best practice: If we need to use
