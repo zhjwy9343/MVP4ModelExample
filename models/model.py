@@ -43,7 +43,7 @@ class CompGraphConv(nn.Module):
         self.W_h = nn.Linear(self.in_dim, self.out_dim)
 
 
-    def forward(self, g, n_in_feats, e_feats_name):
+    def forward(self, g, n_in_feats, e_feats):
         """
             Compute one layer of composition transfer
         """
@@ -53,11 +53,7 @@ class CompGraphConv(nn.Module):
         with g.local_scope():
             # assign values to source nodes
             g.srcdata['h'] = n_in_feats
-            g.dstdata['h'] = n_h_dst            # This line causes a problem between FG and MB. Without it, Works fine
-                                                # in FG, but error in MB
-
-            # get e_features
-            e_feats = g.edata[e_feats_name]
+            g.dstdata['h'] = n_h_dst
 
             # compute composition function in two steps
             # Step 1, compute composition by edge and store results in edges.
@@ -155,12 +151,14 @@ class CompGCN(nn.Module):
                                          self.out_dim,
                                          comp_fn = self.comp_fn))
 
-    def forward(self, bipartites, n_feats, e_feats_name):
+    def forward(self, graph, n_feats, e_feats_name):
+        # Check if the input graph is a list of graphs, which can happen in mini-batch training.
+        if not isinstance(graph, list):
+            graph = [graph] * len(self.layers)
 
         # Forward of n layers of CompGraphConv
-        for layer, bipartite in zip(self.layers, bipartites):
-            n_feats = layer(bipartite, n_feats, e_feats_name)   # This line of code may cause mindset confusion in FB,
-                                                                # because in full graph we need to give a set of graphs
+        for layer, g in zip(self.layers, graph):
+            n_feats = layer(g, n_feats, g.edata[e_feats_name])
 
         return n_feats
 

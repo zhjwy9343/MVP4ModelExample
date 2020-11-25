@@ -178,36 +178,23 @@ def main(args):
 
         print("Test Acc: {:.4f} | Test loss: {:.4f}".format(test_acc, test_loss.item()))
 
-    # Step 6: If need, save model to file ============================================================== #
-    model_stat_dict = compgcn_model.state_dict()
-    model_path = args.save_path
-    th.save(model_stat_dict, model_path)
+    # Step 6: Optional, save model to file ============================================================== #
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='BoSH CompGCN Full Graph')
-    # parser.add_argument("-d", "--dataset", type=str, required=True, help="dataset to use")
     parser.add_argument("--gpu", type=int, default=-1, help="GPU Index")
     parser.add_argument("--hid_dim", type=int, default=32, help="Hidden layer dimensionalities")
     parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
     parser.add_argument("--num_classes", type=int, default=2, help="Number of prediction classes")
     parser.add_argument("--batchsize", type=int, default=128, help="Number of nodes in a mini batch")
-    parser.add_argument("--e_feats_name", type=str, default='f', help="The key name of edge features")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function")
     parser.add_argument("--max_epoch", type=int, default=20, help="The max number of epoches")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
     parser.add_argument("--drop_out", type=float, default=0.1, help="Drop out rate")
-    parser.add_argument("--save_path", type=str, default='./model.pth', help="File path of the model to be saved.")
-    fp = parser.add_mutually_exclusive_group(required=False)
-    fp.add_argument('--validation', dest='validation', action='store_true')
-    fp.add_argument('--testing', dest='validation', action='store_false')
-    parser.set_defaults(validation=True)
 
     args = parser.parse_args()
     print(args)
-
-    np.random.seed(123456)
-    th.manual_seed(123456)
 
     args.dataset, _ = load_graphs('./syn1_ba_500_500.bin')
 
