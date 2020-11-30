@@ -79,8 +79,8 @@ class CompGraphConv(nn.Module):
 
             in_edges_idx = th.nonzero(g.edata['in_edges_mask'], as_tuple=False).squeeze()
             out_edges_idx = th.nonzero(g.edata['out_edges_mask'], as_tuple=False).squeeze()
-            comp_h_O = self.W_O(comp_h[in_edges_idx])
-            comp_h_I = self.W_I(comp_h[out_edges_idx])
+            comp_h_O = self.W_O(comp_h[out_edges_idx])
+            comp_h_I = self.W_I(comp_h[in_edges_idx])
             new_comp_h = th.cat([comp_h_O, comp_h_I], dim=0)
             g.edata['new_comp_h'] = new_comp_h
 
