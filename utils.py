@@ -1,7 +1,4 @@
-#-*- coding:utf-8 -*-
-
 # This file is copied from the Author's implementation, specially the ccorr function of circular convolution.
-
 
 import torch
 

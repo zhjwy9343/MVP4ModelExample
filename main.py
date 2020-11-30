@@ -1,7 +1,5 @@
-#-*- coding:utf-8 -*-
-
 """
-    The main file to train an Simplified CompGCN model using a full graph.
+    The main file to train a Simplified CompGCN model using a full graph.
 """
 
 import argparse
@@ -11,7 +9,6 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 import dgl
-from dgl import DGLError
 from dgl.data import CoraGraphDataset
 import dgl.function as fn
 
@@ -75,7 +72,7 @@ class CompGraphConv(nn.Module):
             elif self.comp_fn == 'ccorr':
                 g.apply_edges(lambda edges: {'comp_h': ccorr(edges.src['h'], edges.dst['h'])})
             else:
-                raise DGLError('Only supports sub, mul, and ccorr')
+                raise Exception('Only supports sub, mul, and ccorr')
 
             # Step 2, take advantage of dgl's edges and reversed-edges order
             comp_h = g.edata['comp_h']
@@ -96,7 +93,7 @@ class CompGraphConv(nn.Module):
             elif self.comp_fn == 'ccorr':
                 comp_h_s = ccorr(n_in_feats, r_feats)
             else:
-                raise DGLError('Only supports sub, mul, and ccorr')
+                raise Exception('Only supports sub, mul, and ccorr')
 
             # sum all of the comp results as output
             n_out_feats = self.W_S(comp_h_s) + g.ndata['comp_edge']
@@ -190,10 +187,10 @@ class CompGCN(nn.Module):
 
 def main(args):
 
-    # Step 1： Prepare graph data and split into train/validation ============================= #
+    # Step 1: Prepare graph data and retrieve train/validation/test index ============================= #
     # Load from DGL dataset
     if args.dataset == 'cora':
-        dataset = CoraGraphDataset(force_reload=True)
+        dataset = CoraGraphDataset()
         graph = dataset[0]
     else:
         raise NotImplementedError
@@ -221,13 +218,13 @@ def main(args):
     val_mask = graph.ndata.pop('val_mask')
     test_mask = graph.ndata.pop('test_mask')
 
-    train_idx = th.nonzero(train_mask).squeeze()
-    val_idx = th.nonzero(val_mask).squeeze()
-    test_idx = th.nonzero(test_mask).squeeze()
+    train_idx = th.nonzero(train_mask, as_tuple=False).squeeze()
+    val_idx = th.nonzero(val_mask, as_tuple=False).squeeze()
+    test_idx = th.nonzero(test_mask, as_tuple=False).squeeze()
 
-    # In this Cora dataset, we only have one relationship in a homogenous graph, which has direction of edges.
-    # So our model will have one relation embedding, and take advantage of DGL's build-in APIs to get the reverse direction
-    # for computing the 3 directional weights, and 1 relation weight.
+    # In this Cora dataset, the graph is a homogeneous graph, so the model will handle one relation embedding only.
+    # Here we take advantage of DGL's build-in APIs to get the reverse direction for computing the 3 directional
+    # weights, and 1 relation weight.
     graph = dgl.add_reverse_edges(graph)
 
     # Step 2: Create model =================================================================== #
@@ -236,7 +233,7 @@ def main(args):
                             out_dim=num_classes,
                             num_layers=args.num_layers,
                             comp_fn=args.comp_fn,
-                            dropout=args.drop_out,
+                            dropout=args.dropout,
                             activation=F.relu,
                             batchnorm=True
                             )
@@ -246,7 +243,7 @@ def main(args):
 
     # Step 3: Create training components ===================================================== #
     loss_fn = th.nn.CrossEntropyLoss()
-    optimizer = optim.Adam([{'params': compgcn_model.parameters(), 'lr':args.lr, 'weight_decay':5e-4}])
+    optimizer = optim.Adam(compgcn_model.parameters(), lr=args.lr, weight_decay=5e-4)
 
     # Step 4: training epoches =============================================================== #
     for epoch in range(args.max_epoch):
@@ -284,21 +281,18 @@ def main(args):
 
     print("Test Acc: {:.4f} | Test loss: {:.4f}".format(test_acc, test_loss.item()))
 
-    print()
-
-    # Step 5: Optional, save model to file ============================================================== #
-
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='MVP Mod-CompGCN Full Graph')
+    parser = argparse.ArgumentParser(description='MVP Simplified-CompGCN Full Graph')
     parser.add_argument("--dataset", type=str, default="cora", help="DGL dataset for this MVP")
-    parser.add_argument("--gpu", type=int, default=-1, help="GPU Index")
+    parser.add_argument("--gpu", type=int, default=-1, help="GPU Index. Default: -1, using CPU.")
     parser.add_argument("--hid_dim", type=int, default=100, help="Hidden layer dimensionalities")
-    parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
-    parser.add_argument("--comp_fn", type=str, default='ccorr', help="Composition function")
+    parser.add_argument("--num_layers", type=int, default=4, help="Number of GNN layers")
+    parser.add_argument("--comp_fn", type=str, default='ccorr', help="Composition function. "
+                                                                     "Valid options: sub, mul and ccorr")
     parser.add_argument("--max_epoch", type=int, default=500, help="The max number of epoches")
-    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
-    parser.add_argument("--drop_out", type=float, default=0.1, help="Drop out rate")
+    parser.add_argument("--lr", type=float, default=0.0003, help="Learning rate. Default: 3e-4")
+    parser.add_argument("--dropout", type=float, default=0.1, help="Dropout rate. Default: 0.1")
 
     args = parser.parse_args()
     print(args)
