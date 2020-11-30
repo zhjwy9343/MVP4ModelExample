@@ -1,4 +1,5 @@
-# This file is copied from the Author's implementation, specially the ccorr function of circular convolution.
+# This file is copied from the CompGCN author's implementation.
+# It implements the operation of circular convolution in the ccorr function.
 
 import torch
 
@@ -14,24 +15,53 @@ def conj(a):
 	return a
 
 
-def cconv(a, b):
-	return torch.irfft(com_mult(torch.rfft(a, 1), torch.rfft(b, 1)), 1, signal_sizes=(a.shape[-1],))
-
-
 def ccorr(a, b):
 	"""
 	Compute circular correlation of two tensors.
 	Parameters
 	----------
-	a: Tensor,
-	b: Tensor
+	a: Tensor, 1D or 2D
+	b: Tensor, 1D
 
 	Notes
 	-----
-	Input a and b should have the same dimensions.
+	Input a and b should have the same dimensions. And this operation supports broadcasting.
 
 	Returns
 	-------
-
+	Tensor, having same dimensions as the input a.
 	"""
 	return torch.irfft(com_mult(conj(torch.rfft(a, 1)), torch.rfft(b, 1)), 1, signal_sizes=(a.shape[-1],))
+
+
+def extract_cora_edge_direction(cora_graph):
+	"""
+	Extract the direction of edges in the cora graph data.
+
+	:param cora_graph:
+	:return:
+	"""
+	u, v = cora_graph.edges()
+
+	edge_dict = {}
+	for i, (src, dst) in enumerate(zip(u.tolist(), v.tolist())):
+		if edge_dict.get((dst, src)):
+			edge_dict[(dst, src)].append(i)
+		else:
+			edge_dict[(src, dst)] = [i]
+
+	in_edges_mask = [False] * u.shape[0]
+	out_edges_mask = [False] * u.shape[0]
+
+	for k, v in edge_dict.items():
+		in_edges_mask[v[0]] = True
+		out_edges_mask[v[1]] = True
+
+	return in_edges_mask, out_edges_mask
+
+
+if __name__ == '__main__':
+	a = torch.ones(7) * 0.33
+	b = torch.randn(7)
+	c = com_mult(a, b)
+	print(c)

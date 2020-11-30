@@ -12,7 +12,7 @@ import dgl
 from dgl.data import CoraGraphDataset
 import dgl.function as fn
 
-from utils import ccorr
+from utils import ccorr, extract_cora_edge_direction
 
 
 class CompGraphConv(nn.Module):
@@ -57,11 +57,11 @@ class CompGraphConv(nn.Module):
             reversed edges.
         """
         with g.local_scope():
-            # assign values to source nodes. In a homo graph, this is equal to assigning them to all nodes.
+            # assign values to source nodes. In a homogeneous graph, this is equal to assigning them to all nodes.
             g.srcdata['h'] = n_in_feats
 
             # assign feature to all edges with the same value, the r_feats.
-            g.edata['h'] = th.stack([r_feats] * g.number_of_edges())
+            g.edata['h'] = th.stack([r_feats] * g.num_edges())
 
             # compute composition function in 4 steps
             # Step 1, compute composition by edge in the edge direction, and store results in edges.
@@ -74,11 +74,13 @@ class CompGraphConv(nn.Module):
             else:
                 raise Exception('Only supports sub, mul, and ccorr')
 
-            # Step 2, take advantage of dgl's edges and reversed-edges order
+            # Step 2, use extracted edge direction to compute in and out edges
             comp_h = g.edata['comp_h']
-            half = int(comp_h.shape[0] / 2)
-            comp_h_O = self.W_O(comp_h[:half])
-            comp_h_I = self.W_I(comp_h[half:])
+
+            in_edges_idx = th.nonzero(g.edata['in_edges_mask'], as_tuple=False).squeeze()
+            out_edges_idx = th.nonzero(g.edata['out_edges_mask'], as_tuple=False).squeeze()
+            comp_h_O = self.W_O(comp_h[in_edges_idx])
+            comp_h_I = self.W_I(comp_h[out_edges_idx])
             new_comp_h = th.cat([comp_h_O, comp_h_I], dim=0)
             g.edata['new_comp_h'] = new_comp_h
 
@@ -119,7 +121,7 @@ class CompGraphConv(nn.Module):
 
 class CompGCN(nn.Module):
     """
-        The model of the simplified CompGCN, without using basis vector, for a homograph
+        The model of the simplified CompGCN, without using basis vector, for a homogeneous graph.
     """
     def __init__(self,
                  in_dim,
@@ -223,9 +225,12 @@ def main(args):
     test_idx = th.nonzero(test_mask, as_tuple=False).squeeze()
 
     # In this Cora dataset, the graph is a homogeneous graph, so the model will handle one relation embedding only.
-    # Here we take advantage of DGL's build-in APIs to get the reverse direction for computing the 3 directional
-    # weights, and 1 relation weight.
-    graph = dgl.add_reverse_edges(graph)
+    # Although the Cora dataset is a homogeneous graph, DGL had set its edges to bidirectional. For this simplified
+    # CompGCN implementation, here extract the list of two directions and will be used in the CompGCN layers as
+    # an edge features with the key of "in_edges_mask" and "out_edges_mask"
+    in_edges_mask, out_edges_mask = extract_cora_edge_direction(graph)
+    graph.edata['in_edges_mask'] = th.tensor(in_edges_mask)
+    graph.edata['out_edges_mask'] = th.tensor(out_edges_mask)
 
     # Step 2: Create model =================================================================== #
     compgcn_model = CompGCN(in_dim=in_dim,
