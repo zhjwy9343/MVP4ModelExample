@@ -6,6 +6,9 @@ GNN-related research papers with DGL.
 The GNN model used in this MVP comes from the paper of [CompositionGCN](https://arxiv.org/abs/1911.03082), and was simplified
 for the education purpose. In this project, it is called simplified CompGCN.
 
+**NOTE**: The MVP example is to show DGL's standard way of implementing models not for reproducing
+any meaningful results.
+
 The Graph Data to Tackle
 --------------------------
 - Graph data (g): the DGL's built-in CoraGraphDataset.
