@@ -57,7 +57,7 @@ class CompGraphConv(nn.Module):
             g.edata['h'] = th.stack([r_feats] * g.num_edges())
 
             # Compute composition function in 4 steps
-            # Step 1, compute composition by edge in the edge direction, and store results in edges.
+            # Step 1: compute composition by edge in the edge direction, and store results in edges.
             if self.comp_fn == 'sub':
                 g.apply_edges(fn.u_sub_e('h', 'h', out='comp_h'))
             elif self.comp_fn == 'mul':
@@ -67,7 +67,7 @@ class CompGraphConv(nn.Module):
             else:
                 raise Exception('Only supports sub, mul, and ccorr')
 
-            # Step 2, use extracted edge direction to compute in and out edges
+            # Step 2: use extracted edge direction to compute in and out edges
             comp_h = g.edata['comp_h']
 
             in_edges_idx = th.nonzero(g.edata['in_edges_mask'], as_tuple=False).squeeze()
