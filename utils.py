@@ -29,7 +29,7 @@ def ccorr(a, b):
 
 	Returns
 	-------
-	Tensor, having same dimensions as the input a.
+	Tensor, having the same dimension as the input a.
 	"""
 	return torch.irfft(com_mult(conj(torch.rfft(a, 1)), torch.rfft(b, 1)), 1, signal_sizes=(a.shape[-1],))
 
@@ -58,10 +58,3 @@ def extract_cora_edge_direction(cora_graph):
 		out_edges_mask[v[1]] = True
 
 	return in_edges_mask, out_edges_mask
-
-
-if __name__ == '__main__':
-	a = torch.ones(7) * 0.33
-	b = torch.randn(7)
-	c = com_mult(a, b)
-	print(c)
