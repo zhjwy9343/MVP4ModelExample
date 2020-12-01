@@ -21,7 +21,7 @@ def ccorr(a, b):
 	Parameters
 	----------
 	a: Tensor, 1D or 2D
-	b: Tensor, 1D
+	b: Tensor, 1D or 2D
 
 	Notes
 	-----
