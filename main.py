@@ -1,6 +1,4 @@
-"""
-    The main file to train a Simplified CompGCN model using a full graph.
-"""
+"""The main file to train a Simplified CompGCN model using a full graph."""
 
 import argparse
 import torch as th
@@ -16,9 +14,7 @@ from utils import ccorr, extract_cora_edge_direction
 
 
 class CompGraphConv(nn.Module):
-    """
-        One layer of simplified CompGCN.
-    """
+    """One layer of simplified CompGCN."""
 
     def __init__(self,
                  in_dim,
@@ -26,8 +22,7 @@ class CompGraphConv(nn.Module):
                  comp_fn='sub',
                  activation=None,
                  batchnorm=False,
-                 dropout=0,
-                 ):
+                 dropout=0):
         super(CompGraphConv, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -52,18 +47,18 @@ class CompGraphConv(nn.Module):
 
 
     def forward(self, g, n_in_feats, r_feats):
-        """
-            Compute one layer of composition transfer for one relation only in a homogeneous graph with additional
-            reversed edges.
+        """Compute one layer of composition transfer for one relation only in a
+        homogeneous graph with additional reversed edges.
         """
         with g.local_scope():
-            # assign values to source nodes. In a homogeneous graph, this is equal to assigning them to all nodes.
+            # Assign values to source nodes. In a homogeneous graph, this is equal to
+            # assigning them to all nodes.
             g.srcdata['h'] = n_in_feats
 
-            # assign feature to all edges with the same value, the r_feats.
+            # Assign feature to all edges with the same value, the r_feats.
             g.edata['h'] = th.stack([r_feats] * g.num_edges())
 
-            # compute composition function in 4 steps
+            # Compute composition function in 4 steps
             # Step 1, compute composition by edge in the edge direction, and store results in edges.
             if self.comp_fn == 'sub':
                 g.apply_edges(fn.u_sub_v('h', 'h', out='comp_h'))
@@ -97,10 +92,10 @@ class CompGraphConv(nn.Module):
             else:
                 raise Exception('Only supports sub, mul, and ccorr')
 
-            # sum all of the comp results as output
+            # Sum all of the comp results as output
             n_out_feats = self.W_S(comp_h_s) + g.ndata['comp_edge']
 
-            # compute relation output
+            # Compute relation output
             r_out_feats = self.W_R(r_feats)
 
             # Use batch norm
@@ -120,8 +115,7 @@ class CompGraphConv(nn.Module):
 
 
 class CompGCN(nn.Module):
-    """
-        The model of the simplified CompGCN, without using basis vector, for a homogeneous graph.
+    """The model of the simplified CompGCN, without using basis vector, for a homogeneous graph.
     """
     def __init__(self,
                  in_dim,
@@ -131,8 +125,7 @@ class CompGCN(nn.Module):
                  comp_fn='sub',
                  dropout=0.0,
                  activation=None,
-                 batchnorm=False
-                 ):
+                 batchnorm=False):
         super(CompGCN, self).__init__()
         self.in_dim = in_dim
         self.hid_dim = hid_dim
@@ -169,7 +162,7 @@ class CompGCN(nn.Module):
                                          self.out_dim,
                                          comp_fn = self.comp_fn))
 
-        # initialize relation embeddings
+        # Initialize relation embeddings
         th.nn.init.uniform_(self.r_embedding)
 
     def forward(self, graph, n_feats):
@@ -181,8 +174,6 @@ class CompGCN(nn.Module):
 
         for layer in self.layers:
             n_feats, r_feats = layer(graph, n_feats, r_feats)
-
-            # print(r_feats.shape)
 
         return n_feats
 
@@ -198,21 +189,19 @@ def main(args):
         raise NotImplementedError
 
     # check cuda
-    use_cuda = (args.gpu >= 0 and th.cuda.is_available())
-    print("If use GPU: {}".format(use_cuda))
-
-    if use_cuda:
+    if args.gpu >= 0 and th.cuda.is_available():
         device = 'cuda:{}'.format(args.gpu)
-        graph = graph.to(device)
+    else:
+        device = 'cpu'
 
     # retrieve the number of classes
     num_classes = dataset.num_classes
 
     # retrieve labels of ground truth
-    labels = graph.ndata['label'].long()
+    labels = graph.ndata.pop('label').to(device).long()
 
     # Extract node features
-    n_feats = graph.ndata.pop('feat')
+    n_feats = graph.ndata.pop('feat').to(device)
     in_dim = n_feats.shape[-1]
 
     # retrieve masks for train/validation/test
@@ -220,9 +209,9 @@ def main(args):
     val_mask = graph.ndata.pop('val_mask')
     test_mask = graph.ndata.pop('test_mask')
 
-    train_idx = th.nonzero(train_mask, as_tuple=False).squeeze()
-    val_idx = th.nonzero(val_mask, as_tuple=False).squeeze()
-    test_idx = th.nonzero(test_mask, as_tuple=False).squeeze()
+    train_idx = th.nonzero(train_mask, as_tuple=False).squeeze().to(device)
+    val_idx = th.nonzero(val_mask, as_tuple=False).squeeze().to(device)
+    test_idx = th.nonzero(test_mask, as_tuple=False).squeeze().to(device)
 
     # In this Cora dataset, the graph is a homogeneous graph, so the model will handle one relation embedding only.
     # Although the Cora dataset is a homogeneous graph, DGL had set its edges to bidirectional. For this simplified
@@ -232,6 +221,8 @@ def main(args):
     graph.edata['in_edges_mask'] = th.tensor(in_edges_mask)
     graph.edata['out_edges_mask'] = th.tensor(out_edges_mask)
 
+    graph = graph.to(device)
+
     # Step 2: Create model =================================================================== #
     compgcn_model = CompGCN(in_dim=in_dim,
                             hid_dim=args.hid_dim,
@@ -240,11 +231,9 @@ def main(args):
                             comp_fn=args.comp_fn,
                             dropout=args.dropout,
                             activation=F.relu,
-                            batchnorm=True
-                            )
+                            batchnorm=True)
 
-    if use_cuda:
-        compgcn_model = compgcn_model.to('cuda:{}'.format(args.gpu))
+    compgcn_model = compgcn_model.to(device)
 
     # Step 3: Create training components ===================================================== #
     loss_fn = th.nn.CrossEntropyLoss()
