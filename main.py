@@ -76,7 +76,7 @@ class CompGraphConv(nn.Module):
             comp_h_O = self.W_O(comp_h[out_edges_idx])
             comp_h_I = self.W_I(comp_h[in_edges_idx])
 
-            new_comp_h = th.zeros(comp_h.shape[0], self.out_dim)
+            new_comp_h = th.zeros(comp_h.shape[0], self.out_dim).to(comp_h.device)
             new_comp_h[out_edges_idx] = comp_h_O
             new_comp_h[in_edges_idx] = comp_h_I
 
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_layers", type=int, default=4, help="Number of GNN layers")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function. "
                                                                      "Valid options: sub, mul and ccorr")
-    parser.add_argument("--max_epoch", type=int, default=10, help="The max number of epoches")
+    parser.add_argument("--max_epoch", type=int, default=1000, help="The max number of epoches")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate. Default: 3e-4")
     parser.add_argument("--dropout", type=float, default=0.0, help="Dropout rate. Default: 0.0")
 
