@@ -287,8 +287,8 @@ if __name__ == '__main__':
     parser.add_argument("--num_layers", type=int, default=4, help="Number of GNN layers")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function. "
                                                                      "Valid options: sub, mul and ccorr")
-    parser.add_argument("--max_epoch", type=int, default=1000, help="The max number of epoches")
-    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate. Default: 3e-4")
+    parser.add_argument("--max_epoch", type=int, default=100, help="The max number of epoches. Default: 100")
+    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate. Default: 3e-1")
     parser.add_argument("--dropout", type=float, default=0.0, help="Dropout rate. Default: 0.0")
 
     args = parser.parse_args()
