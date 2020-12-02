@@ -1,27 +1,27 @@
-# MVP (Minimum Value Product) of DGL GNN Model Example Development
+# DGL Implementation of the CompGCN Paper
 
-This project is designed for an MVP for GNN model development, and a tutorial for new interns who will implement
-GNN-related research papers with DGL.
+This DGL example implements the GNN model proposed in the paper [CompositionGCN](https://arxiv.org/abs/1911.03082). 
+The author's codes of implementation is in [here](??)
 
-The GNN model used in this MVP comes from the paper of [CompositionGCN](https://arxiv.org/abs/1911.03082), and was simplified
-for the education purpose. In this project, it is called simplified CompGCN.
+The graph dataset used in this example 
+---------------------------------------
+The DGL's built-in CoraGraphDataset. Dataset summary:
+- NumNodes: 2708
+- NumEdges: 10556
+- NumFeats: 1433
+- NumClasses: 7
+- NumTrainingSamples: 140
+- NumValidationSamples: 500
+- NumTestSamples: 1000
 
-**NOTE**: The MVP example is to show DGL's standard way of implementing models not for reproducing
-any meaningful results.
+How to run example Files
+--------------------------------
+In the MVP4ModelExample folder, run
 
-The Graph Data to Tackle
---------------------------
-- Graph data (g): the DGL's built-in CoraGraphDataset.
+```python
+python main.py
+```
 
-The Model and Algorithm
+Performance(if need)
 -------------------------
 
-For the simplified CompGCN, the detailed math formulas are the same as the original CompGCN paper, except that we did not
-use basis vector to represent the relation embedding because in the Cora dataset, there is only one relation. Therefore
-we used a learnable parameter as this relation's embedding with the same dimension as the input feature.
-
-The Structure of Example Files
---------------------------------
-- **main.py:** The python file for training the simplified CompGCN model with a full graph.
-  
-- **utils.py:** helper file, providing the circular correlation computation function.

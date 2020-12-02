@@ -166,7 +166,8 @@ class CompGCN(nn.Module):
                                          comp_fn = self.comp_fn))
 
         # Initialize relation embeddings
-        th.nn.init.uniform_(self.r_embedding)
+        # th.nn.init.uniform_(self.r_embedding)
+        th.nn.init.constant_(self.r_embedding, 0.)
 
     def forward(self, graph, n_feats):
 
@@ -287,7 +288,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_layers", type=int, default=4, help="Number of GNN layers")
     parser.add_argument("--comp_fn", type=str, default='sub', help="Composition function. "
                                                                      "Valid options: sub, mul and ccorr")
-    parser.add_argument("--max_epoch", type=int, default=1000, help="The max number of epoches")
+    parser.add_argument("--max_epoch", type=int, default=90, help="The max number of epoches")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate. Default: 3e-4")
     parser.add_argument("--dropout", type=float, default=0.0, help="Dropout rate. Default: 0.0")
 
