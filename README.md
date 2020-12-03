@@ -5,6 +5,12 @@ The author's codes of implementation is in [here](https://github.com/malllabiisc
 
 **Note**: Please replace the paper and author's codes with the paper you implemented.
 
+Example implementor
+----------------------
+This example was implemented by [zhjwy9343](https://github.com/zhjwy9343) during his *** work at the AWS Shanghai AI Lab.
+
+**Note**: Please replace the implementor with your identity and *** with your real status when implement this example.
+
 The graph dataset used in this example 
 ---------------------------------------
 The DGL's built-in CoraGraphDataset. Dataset summary:
