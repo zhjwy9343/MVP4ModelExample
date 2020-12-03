@@ -36,6 +36,8 @@ If want to use a GPU, run
 python main.py --gpu 0
 ```
 
+**Note**：Please replace these commands with your implementation's real commands.
+
 Performance
 -------------------------
 **Note**: If your implementation needs to reproduce the SOTA performance, please put these performance here.
