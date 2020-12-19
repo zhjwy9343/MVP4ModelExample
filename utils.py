@@ -1,4 +1,5 @@
-# This file is copied from the CompGCN author's implementation.
+# This file is copied from the CompGCN author's implementation
+# <https://github.com/malllabiisc/CompGCN/blob/master/helper.py>.
 # It implements the operation of circular convolution in the ccorr function.
 
 import torch
